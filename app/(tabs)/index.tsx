@@ -1,8 +1,8 @@
-// index.tsx — GauSevak Main Dashboard
+// index.tsx — GauSevak Worker Dashboard (White UI)
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Modal, Animated,
+  StyleSheet, Modal, Animated, StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -36,27 +36,33 @@ const COWS: Cow[] = [
 const ACTION_META = {
   milk: {
     label: 'Milk Entry',
-    desc: 'Record cow milk yield — litre by litre',
-    color: '#22d3a0',
-    gradient: ['#22d3a0', '#059669'] as const,
+    desc: 'Record cow milk yield',
+    color: '#16a34a',
+    gradient: ['#16a34a', '#15803d'] as const,
+    bg: '#f0fdf4',
     iconLib: 'MaterialCommunityIcons' as const,
     icon: 'water',
+    emoji: '🥛',
   },
   feed: {
     label: 'Feed Status',
-    desc: 'Mark each cow\'s feeding as done',
-    color: '#f5c842',
-    gradient: ['#f5c842', '#ca8a04'] as const,
+    desc: "Mark each cow's feeding",
+    color: '#d97706',
+    gradient: ['#f59e0b', '#d97706'] as const,
+    bg: '#fffbeb',
     iconLib: 'FontAwesome5' as const,
     icon: 'seedling',
+    emoji: '🌾',
   },
   health: {
     label: 'Health Check',
-    desc: 'Log health condition for each cow',
-    color: '#f87171',
-    gradient: ['#f87171', '#dc2626'] as const,
+    desc: 'Log health condition',
+    color: '#dc2626',
+    gradient: ['#ef4444', '#dc2626'] as const,
+    bg: '#fef2f2',
     iconLib: 'MaterialCommunityIcons' as const,
     icon: 'heart-pulse',
+    emoji: '❤️',
   },
 };
 
@@ -70,67 +76,59 @@ function ActionMetaIcon({
   return <MaterialCommunityIcons name={meta.icon as any} size={size} color={c} />;
 }
 
-function ActionButton({
+// ─── Big Action Button ────────────────────────────────────────────────────────
+function BigActionButton({
   actionKey, onPress, delay,
 }: {
   actionKey: keyof typeof ACTION_META;
   onPress: () => void;
   delay: number;
 }) {
-  const meta = ACTION_META[actionKey];
-  const scale      = useRef(new Animated.Value(0.85)).current;
+  const meta       = ACTION_META[actionKey];
+  const translateY = useRef(new Animated.Value(40)).current;
   const opacity    = useRef(new Animated.Value(0)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scale,   { toValue: 1, delay, useNativeDriver: true, tension: 80, friction: 8 }),
-      Animated.timing(opacity, { toValue: 1, delay, duration: 320, useNativeDriver: true }),
+      Animated.spring(translateY, { toValue: 0, delay, useNativeDriver: true, tension: 70, friction: 9 }),
+      Animated.timing(opacity,    { toValue: 1, delay, duration: 350, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  const onPressIn  = () => Animated.spring(pressScale, { toValue: 0.96, useNativeDriver: true }).start();
+  const onPressIn  = () => Animated.spring(pressScale, { toValue: 0.97, useNativeDriver: true }).start();
   const onPressOut = () => Animated.spring(pressScale, { toValue: 1,    useNativeDriver: true }).start();
 
   return (
-    <Animated.View style={{ transform: [{ scale: Animated.multiply(scale, pressScale) }], opacity }}>
+    <Animated.View style={{ transform: [{ translateY }, { scale: pressScale }], opacity, marginBottom: 16 }}>
       <TouchableOpacity
-        style={[ab.btn, { borderLeftColor: meta.color }]}
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         activeOpacity={1}
       >
-        <LinearGradient colors={[meta.color + '33', meta.color + '11']} style={ab.iconBox}>
-          <ActionMetaIcon meta={meta} size={24} />
-        </LinearGradient>
-        <View style={ab.textBox}>
-          <Text style={ab.label}>{meta.label}</Text>
-          <Text style={ab.desc}>{meta.desc}</Text>
+        <View style={[bb.card, { backgroundColor: meta.bg, borderColor: meta.color + '30' }]}>
+          {/* Left color bar */}
+          <View style={[bb.colorBar, { backgroundColor: meta.color }]} />
+
+          {/* Icon circle */}
+          <LinearGradient colors={meta.gradient} style={bb.iconCircle}>
+            <Text style={{ fontSize: 28 }}>{meta.emoji}</Text>
+          </LinearGradient>
+
+          {/* Text */}
+          <View style={bb.textWrap}>
+            <Text style={[bb.label, { color: '#1a1a1a' }]}>{meta.label}</Text>
+            <Text style={bb.desc}>{meta.desc}</Text>
+          </View>
+
+          {/* Arrow */}
+          <View style={[bb.arrowWrap, { backgroundColor: meta.color + '15' }]}>
+            <Ionicons name="chevron-forward" size={20} color={meta.color} />
+          </View>
         </View>
-        <LinearGradient colors={meta.gradient} style={ab.arrowBox}>
-          <Ionicons name="chevron-forward" size={16} color="#fff" />
-        </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
-  );
-}
-
-function DetailRow({
-  iconName, iconLib = 'Ionicons', label, value,
-}: {
-  iconName: string;
-  iconLib?: 'Ionicons' | 'MaterialCommunityIcons';
-  label: string;
-  value: string;
-}) {
-  const Icon = iconLib === 'MaterialCommunityIcons' ? MaterialCommunityIcons : Ionicons;
-  return (
-    <View style={pr.row}>
-      <View style={pr.iconWrap}><Icon name={iconName as any} size={15} color="#555" /></View>
-      <Text style={pr.label}>{label}</Text>
-      <Text style={pr.value}>{value}</Text>
-    </View>
   );
 }
 
@@ -150,30 +148,23 @@ function FullScreenModal({
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <View style={ms.container}>
-        <LinearGradient colors={['#141428', '#0f0f1e']} style={ms.header}>
+        <View style={[ms.header, { borderBottomColor: meta.color + '20' }]}>
           <View style={[ms.colorBar, { backgroundColor: meta.color }]} />
           <LinearGradient colors={meta.gradient} style={ms.headerIcon}>
-            <ActionMetaIcon meta={meta} size={18} color="#fff" />
+            <Text style={{ fontSize: 18 }}>{meta.emoji}</Text>
           </LinearGradient>
           <View style={{ flex: 1 }}>
             <Text style={ms.title}>{meta.label}</Text>
             <Text style={ms.sub}>{meta.desc}</Text>
           </View>
-          <TouchableOpacity style={ms.closeBtn} onPress={onClose}>
-            <Ionicons name="close" size={18} color="#fff" />
+          <TouchableOpacity style={[ms.closeBtn, { backgroundColor: '#f3f4f6' }]} onPress={onClose}>
+            <Ionicons name="close" size={18} color="#374151" />
           </TouchableOpacity>
-        </LinearGradient>
-
+        </View>
         <View style={ms.content}>
-          {action === 'milk' && (
-            <MilkScreen token={token} onTotalChange={onMilkTotal} />
-          )}
-          {action === 'feed' && (
-            <FeedScreen token={token} cows={COWS} onFedCountChange={onFedCount} />
-          )}
-          {action === 'health' && (
-            <HealthScreen />
-          )}
+          {action === 'milk'   && <MilkScreen token={token} onTotalChange={onMilkTotal} />}
+          {action === 'feed'   && <FeedScreen token={token} cows={COWS} onFedCountChange={onFedCount} />}
+          {action === 'health' && <HealthScreen />}
         </View>
       </View>
     </Modal>
@@ -182,118 +173,98 @@ function FullScreenModal({
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardScreen() {
-  const { user, logout, token } = useAuth();
+  const { worker, workerLogout } = useAuth();
   const router = useRouter();
   const [activeAction, setActiveAction] = useState<QuickAction>(null);
 
-  // ✅ Live stats from sub-screens
   const [milkTotal, setMilkTotal] = useState(0);
-  const [fedDone, setFedDone]     = useState(0);
-  const [fedTotal, setFedTotal]   = useState(COWS.length);
+  const [fedDone,   setFedDone]   = useState(0);
+  const [fedTotal,  setFedTotal]  = useState(COWS.length);
 
   const headerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(headerAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+    Animated.timing(headerAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
   }, []);
 
   const handleLogout = async () => {
-    await logout();
+    await workerLogout();
     router.replace('/(auth)/login');
   };
 
-  const initial = user?.name?.charAt(0)?.toUpperCase() ?? 'A';
-  const fedPct  = fedTotal > 0 ? Math.round((fedDone / fedTotal) * 100) : 0;
+  const firstName  = worker?.name?.split(' ')[0] ?? 'Worker';
+  const initial    = worker?.name?.charAt(0)?.toUpperCase() ?? 'W';
+  const fedPct     = fedTotal > 0 ? Math.round((fedDone / fedTotal) * 100) : 0;
+  const todayDate  = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={s.container}
+      contentContainerStyle={s.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* ── Profile Card ── */}
-      <Animated.View style={{ opacity: headerAnim }}>
-        <LinearGradient colors={['#1a1a35', '#141428']} style={s.profileCard}>
-          <View style={s.avatarRow}>
-            <LinearGradient colors={[theme.accent, '#059669']} style={s.avatar}>
-              <Text style={s.avatarText}>{initial}</Text>
-            </LinearGradient>
-            <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={s.adminName}>{user?.name ?? 'Admin'}</Text>
-              <View style={s.roleBadge}>
-                <MaterialCommunityIcons name="shield-account" size={12} color={theme.accent} />
-                <Text style={s.adminRole}> {user?.role?.toUpperCase()}</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={15} color="#f87171" />
-              <Text style={s.logoutText}> Logout</Text>
-            </TouchableOpacity>
-          </View>
+      {/* ── Top Bar ── */}
+      <Animated.View style={[s.topBar, { opacity: headerAnim }]}>
+        <View>
+          <Text style={s.greeting}>Good morning 👋</Text>
+          <Text style={s.workerName}>{firstName}</Text>
+          {worker?.farm_name ? (
+            <Text style={s.farmName}>🏡 {worker.farm_name}</Text>
+          ) : null}
+        </View>
 
-          <View style={s.divider} />
-
-          <View style={s.detailBox}>
-            <DetailRow iconName="mail-outline"             label="Email"  value={user?.email ?? '-'} />
-            <DetailRow iconName="call-outline"             label="Phone"  value={user?.phone ?? 'Not set'} />
-            <DetailRow iconName="checkmark-circle-outline" label="Status" value={user?.is_active ? 'Active' : 'Inactive'} />
-            <DetailRow iconName="location-outline"         label="Zone"   value={user?.zone ?? 'N/A'} />
-          </View>
-        </LinearGradient>
+        <View style={s.topRight}>
+          <LinearGradient colors={['#16a34a', '#15803d']} style={s.avatar}>
+            <Text style={s.avatarText}>{initial}</Text>
+          </LinearGradient>
+          <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={16} color="#dc2626" />
+          </TouchableOpacity>
+        </View>
       </Animated.View>
 
-      {/* ── Stats Strip — live values ── */}
-      <View style={s.statsRow}>
-        {[
-          {
-            icon: 'cow', label: 'Cows',
-            value: `${COWS.length}`,
-            color: '#22d3a0', lib: 'MaterialCommunityIcons',
-          },
-          {
-            icon: 'water', label: 'Milk Today',
-            // ✅ Live milk total
-            value: milkTotal > 0
-              ? `${Number.isInteger(milkTotal) ? milkTotal : milkTotal.toFixed(1)} L`
-              : '-- L',
-            color: '#60a5fa', lib: 'MaterialCommunityIcons',
-          },
-          {
-            icon: 'seedling', label: 'Fed',
-            // ✅ Live feed percentage
-            value: `${fedPct}%`,
-            color: '#f5c842', lib: 'FontAwesome5',
-          },
-        ].map(stat => (
-          <LinearGradient
-            key={stat.label}
-            colors={['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.02)']}
-            style={s.statCard}
-          >
-            {stat.lib === 'FontAwesome5'
-              ? <FontAwesome5 name={stat.icon as any} size={18} color={stat.color} />
-              : <MaterialCommunityIcons name={stat.icon as any} size={20} color={stat.color} />
-            }
-            <Text style={[s.statValue, { color: stat.color }]}>{stat.value}</Text>
-            <Text style={s.statLabel}>{stat.label}</Text>
-          </LinearGradient>
-        ))}
+      {/* ── Date Strip ── */}
+      <View style={s.dateStrip}>
+        <Ionicons name="calendar-outline" size={13} color="#6b7280" />
+        <Text style={s.dateText}> {todayDate}</Text>
       </View>
 
-      {/* ── Quick Entry ── */}
-      <View style={s.section}>
-        <View style={s.sectionHeader}>
-          <MaterialCommunityIcons name="lightning-bolt" size={15} color={theme.accent} />
-          <Text style={s.sectionLabel}> Quick Entry</Text>
+      {/* ── Stats Row ── */}
+      <View style={s.statsRow}>
+        <View style={[s.statCard, { borderColor: '#16a34a30', backgroundColor: '#f0fdf4' }]}>
+          <Text style={[s.statValue, { color: '#16a34a' }]}>
+            {milkTotal > 0 ? `${Number.isInteger(milkTotal) ? milkTotal : milkTotal.toFixed(1)}L` : '--'}
+          </Text>
+          <Text style={s.statLabel}>Milk Today</Text>
         </View>
-        <ActionButton actionKey="milk"   delay={0}   onPress={() => setActiveAction('milk')} />
-        <ActionButton actionKey="feed"   delay={80}  onPress={() => setActiveAction('feed')} />
-        <ActionButton actionKey="health" delay={160} onPress={() => setActiveAction('health')} />
+
+        <View style={[s.statCard, { borderColor: '#d9770630', backgroundColor: '#fffbeb' }]}>
+          <Text style={[s.statValue, { color: '#d97706' }]}>{fedPct}%</Text>
+          <Text style={s.statLabel}>Fed</Text>
+        </View>
+
+        <View style={[s.statCard, { borderColor: '#3b82f630', backgroundColor: '#eff6ff' }]}>
+          <Text style={[s.statValue, { color: '#3b82f6' }]}>{COWS.length}</Text>
+          <Text style={s.statLabel}>Cows</Text>
+        </View>
       </View>
+
+      {/* ── Section Label ── */}
+      <Text style={s.sectionLabel}>Quick Entry</Text>
+
+      {/* ── Three Big Buttons ── */}
+      <BigActionButton actionKey="milk"   delay={0}   onPress={() => setActiveAction('milk')} />
+      <BigActionButton actionKey="feed"   delay={80}  onPress={() => setActiveAction('feed')} />
+      <BigActionButton actionKey="health" delay={160} onPress={() => setActiveAction('health')} />
 
       <View style={{ height: 40 }} />
 
       {/* ── Modal ── */}
       <FullScreenModal
         action={activeAction}
-        token={token ?? ''}
+        token={''}
         onClose={() => setActiveAction(null)}
         onMilkTotal={setMilkTotal}
         onFedCount={(done, total) => { setFedDone(done); setFedTotal(total); }}
@@ -303,51 +274,43 @@ export default function DashboardScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const ab = StyleSheet.create({
-  btn:     { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderLeftWidth: 4, paddingVertical: 16, paddingHorizontal: 14, marginBottom: 12, gap: 14 },
-  iconBox: { width: 52, height: 52, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  textBox: { flex: 1 },
-  label:   { fontSize: 16, fontWeight: '900', color: '#fff', marginBottom: 3 },
-  desc:    { fontSize: 12, color: '#666' },
-  arrowBox:{ width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-});
-
-const pr = StyleSheet.create({
-  row:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
-  iconWrap:{ width: 28, alignItems: 'center' },
-  label:   { fontSize: 13, color: '#555', width: 58, fontWeight: '600' },
-  value:   { fontSize: 13, fontWeight: '700', color: '#ccc', flex: 1, textAlign: 'right' },
+const bb = StyleSheet.create({
+  card:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, borderWidth: 1.5, paddingVertical: 20, paddingHorizontal: 16, gap: 14, overflow: 'hidden' },
+  colorBar:  { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, borderTopLeftRadius: 20, borderBottomLeftRadius: 20 },
+  iconCircle:{ width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  textWrap:  { flex: 1 },
+  label:     { fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  desc:      { fontSize: 13, color: '#6b7280' },
+  arrowWrap: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });
 
 const ms = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f1a' },
-  header:    { flexDirection: 'row', alignItems: 'center', paddingTop: 56, paddingBottom: 18, paddingHorizontal: 16, gap: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  container: { flex: 1, backgroundColor: '#ffffff' },
+  header:    { flexDirection: 'row', alignItems: 'center', paddingTop: 56, paddingBottom: 18, paddingHorizontal: 16, gap: 12, borderBottomWidth: 1, backgroundColor: '#fff' },
   colorBar:  { width: 3, height: 38, borderRadius: 4 },
-  headerIcon:{ width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  title:     { fontSize: 19, fontWeight: '900', color: '#fff' },
-  sub:       { fontSize: 12, color: '#666', marginTop: 2 },
-  closeBtn:  { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  headerIcon:{ width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  title:     { fontSize: 18, fontWeight: '800', color: '#111827' },
+  sub:       { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  closeBtn:  { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   content:   { flex: 1 },
 });
 
 const s = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: theme.bg },
-  profileCard: { margin: 16, borderRadius: 22, padding: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)' },
-  avatarRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  avatar:      { width: 56, height: 56, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  avatarText:  { fontSize: 22, fontWeight: '900', color: '#000' },
-  adminName:   { fontSize: 18, fontWeight: '900', color: '#fff' },
-  roleBadge:   { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  adminRole:   { fontSize: 12, color: theme.accent, fontWeight: '700' },
-  logoutBtn:   { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(248,113,113,0.12)', borderWidth: 1, borderColor: 'rgba(248,113,113,0.3)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
-  logoutText:  { color: '#f87171', fontWeight: '700', fontSize: 13 },
-  divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 14 },
-  detailBox:   {},
-  statsRow:    { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginBottom: 8 },
-  statCard:    { flex: 1, borderRadius: 16, padding: 14, alignItems: 'center', gap: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  statValue:   { fontSize: 17, fontWeight: '900' },
-  statLabel:   { fontSize: 10, color: '#555', fontWeight: '700', textAlign: 'center' },
-  section:     { paddingHorizontal: 16, paddingTop: 8 },
-  sectionHeader:{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  sectionLabel: { fontSize: 11, color: '#555', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.5 },
+  container:  { flex: 1, backgroundColor: '#ffffff' },
+  content:    { paddingHorizontal: 20, paddingBottom: 20 },
+  topBar:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingTop: 60, paddingBottom: 8 },
+  greeting:   { fontSize: 14, color: '#6b7280', fontWeight: '500' },
+  workerName: { fontSize: 28, fontWeight: '900', color: '#111827', marginTop: 2 },
+  farmName:   { fontSize: 13, color: '#6b7280', marginTop: 3 },
+  topRight:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
+  avatar:     { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  avatarText: { fontSize: 18, fontWeight: '900', color: '#fff' },
+  logoutBtn:  { width: 38, height: 38, borderRadius: 12, backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', alignItems: 'center', justifyContent: 'center' },
+  dateStrip:  { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  dateText:   { fontSize: 13, color: '#6b7280', fontWeight: '500' },
+  statsRow:   { flexDirection: 'row', gap: 10, marginBottom: 28 },
+  statCard:   { flex: 1, borderRadius: 16, borderWidth: 1.5, paddingVertical: 14, alignItems: 'center', gap: 4 },
+  statValue:  { fontSize: 20, fontWeight: '900' },
+  statLabel:  { fontSize: 10, color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionLabel:{ fontSize: 12, fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 16 },
 });

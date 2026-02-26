@@ -9,7 +9,7 @@ import { Entypo } from "@expo/vector-icons";
 
 type AnimatedIconProps = { Icon: any; name: string; focused: boolean; size?: number; color?: string; };
 
-const AnimatedIcon = ({ Icon, name, focused, size = 22, color = "#888" }: AnimatedIconProps) => {
+const AnimatedIcon = ({ Icon, name, focused, size = 22, color = "#ffffff" }: AnimatedIconProps) => {
   const scale = useRef(new Animated.Value(1)).current;
   const glow  = useRef(new Animated.Value(0)).current;
 
@@ -45,11 +45,11 @@ function GauSevakHeader() {
 export default function TabsLayout() {
   return (
     <Tabs screenOptions={{
-      headerStyle: { backgroundColor: '#141428', elevation: 0, shadowOpacity: 0, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' } as any,
+      headerStyle: { backgroundColor: '#ffffff', elevation: 0, shadowOpacity: 0, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' } as any,
       headerTintColor: theme.accent,
       headerTitleStyle: { fontWeight: "800", color: theme.white },
       tabBarStyle: {
-        backgroundColor: '#141428', borderTopColor: 'rgba(255,255,255,0.07)', borderTopWidth: 1,
+        backgroundColor: '#ffffff', borderTopColor: 'rgba(255,255,255,0.07)', borderTopWidth: 1,
         height: Platform.OS === 'ios' ? 88 : 64,
         paddingBottom: Platform.OS === 'ios' ? 24 : 10,
         paddingTop: 8, elevation: 0,
