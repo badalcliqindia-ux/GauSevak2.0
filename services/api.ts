@@ -1,8 +1,5 @@
-// ═══════════════════════════════════════════════════
-// services/api.ts  —  server.py connected
-// ═══════════════════════════════════════════════════
 // export const BASE_URL = "http://192.168.1.4:8000/api";
-export const BASE_URL = "http://192.168.1.22:8000/api";
+export const BASE_URL = "http://192.168.100.231:8000/api";
 
 export type UserResponse = {
   id: string;
@@ -21,7 +18,6 @@ export type TokenResponse = {
   user: UserResponse;
 };
 
-// ── Worker types ──────────────────────────────────────────────────────────────
 export type WorkerResponse = {
   id: string;
   name: string;
@@ -40,7 +36,6 @@ export type WorkerTokenResponse = {
   worker: WorkerResponse;
 };
 
-// ── Core request helper ───────────────────────────────────────────────────────
 async function request<T>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
@@ -63,10 +58,6 @@ async function request<T>(
   return data as T;
 }
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-
-// ✅ FIX: normalize email to lowercase on both login and register
-// so "Admin@Farm.com" and "admin@farm.com" always match in MongoDB
 export const apiLogin = (email: string, password: string) =>
   request<TokenResponse>("/auth/login", "POST", {
     email:    email.toLowerCase().trim(),
@@ -91,7 +82,6 @@ export const apiRegister = (
 export const apiGetMe = (token: string) =>
   request<UserResponse>("/auth/me", "GET", undefined, token);
 
-// ── WORKER AUTH ───────────────────────────────────────────────────────────────
 export const apiWorkerRegister = (data: {
   name: string;
   email: string;
@@ -119,156 +109,124 @@ export const apiWorkerUpdateProfile = (
   data: { name?: string; phone?: string; farm_name?: string; designation?: string },
 ) => request<WorkerResponse>("/worker/auth/profile", "PUT", data, token);
 
-// ── DAIRY MODULES — original short-form functions (kept for compatibility) ────
-export const apiGetMilkYield = (t: string) =>
-  request<any[]>("/dairy/milk-yield", "GET", undefined, t);
-export const apiAddMilkYield = (t: string, d: any) =>
-  request<any>("/dairy/milk-yield", "POST", d, t);
-export const apiUpdateMilkYield = (t: string, id: string, d: any) =>
-  request<any>(`/dairy/milk-yield/${id}`, "PUT", d, t);
-export const apiDeleteMilkYield = (t: string, id: string) =>
-  request<any>(`/dairy/milk-yield/${id}`, "DELETE", undefined, t);
+class ApiService {}
 
-export const apiGetInsemination = (t: string) =>
-  request<any[]>("/dairy/insemination", "GET", undefined, t);
-export const apiAddInsemination = (t: string, d: any) =>
-  request<any>("/dairy/insemination", "POST", d, t);
-export const apiUpdateInsemination = (t: string, id: string, d: any) =>
-  request<any>(`/dairy/insemination/${id}`, "PUT", d, t);
-export const apiDeleteInsemination = (t: string, id: string) =>
-  request<any>(`/dairy/insemination/${id}`, "DELETE", undefined, t);
+export const apiWorkerGetCows = (token: string) =>
+  request<any[]>("/worker/cows", "GET", undefined, token);
 
-export const apiGetDOB = (t: string) =>
-  request<any[]>("/dairy/dob", "GET", undefined, t);
-export const apiAddDOB = (t: string, d: any) =>
-  request<any>("/dairy/dob", "POST", d, t);
-export const apiUpdateDOB = (t: string, id: string, d: any) =>
-  request<any>(`/dairy/dob/${id}`, "PUT", d, t);
-export const apiDeleteDOB = (t: string, id: string) =>
-  request<any>(`/dairy/dob/${id}`, "DELETE", undefined, t);
+export type MilkEntry = {
+  id: string;
+  worker_id: string;
+  worker_name: string;
+  cow_id: string;
+  cow_name: string;
+  cow_tag: string;
+  quantity: number;
+  shift: 'morning' | 'evening';
+  date: string;
+  notes?: string;
+  created_at: string;
+};
 
-export const apiGetSemen = (t: string) =>
-  request<any[]>("/dairy/semen", "GET", undefined, t);
-export const apiAddSemen = (t: string, d: any) =>
-  request<any>("/dairy/semen", "POST", d, t);
-export const apiUpdateSemen = (t: string, id: string, d: any) =>
-  request<any>(`/dairy/semen/${id}`, "PUT", d, t);
-export const apiDeleteSemen = (t: string, id: string) =>
-  request<any>(`/dairy/semen/${id}`, "DELETE", undefined, t);
+export type ShiftStatus = {
+  date: string;
+  morning_done: boolean;
+  morning_count: number;
+  evening_done: boolean;
+  evening_count: number;
+};
 
-export const apiGetGenetic = (t: string) =>
-  request<any[]>("/dairy/genetic", "GET", undefined, t);
-export const apiAddGenetic = (t: string, d: any) =>
-  request<any>("/dairy/genetic", "POST", d, t);
-export const apiUpdateGenetic = (t: string, id: string, d: any) =>
-  request<any>(`/dairy/genetic/${id}`, "PUT", d, t);
-export const apiDeleteGenetic = (t: string, id: string) =>
-  request<any>(`/dairy/genetic/${id}`, "DELETE", undefined, t);
+export const apiWorkerAddMilk = (token: string, data: {
+  cow_id: string;
+  cow_name: string;
+  cow_tag: string;
+  quantity: number;
+  shift: 'morning' | 'evening';
+  date: string;
+  notes?: string;
+}) => request<MilkEntry>("/worker/milk", "POST", data, token);
 
-export const apiGetMedical = (t: string, status?: string) =>
-  request<any[]>(
-    `/dairy/medical${status ? `?status=${status}` : ""}`,
-    "GET",
+export const apiWorkerGetTodayMilk = (token: string) =>
+  request<MilkEntry[]>("/worker/milk/today", "GET", undefined, token);
+
+export const apiWorkerGetShiftStatus = (token: string) =>
+  request<ShiftStatus>("/worker/milk/shift-status", "GET", undefined, token);
+
+export type FeedEntry = {
+  id: string;
+  worker_id: string;
+  worker_name: string;
+  cow_id: string;
+  cow_name: string;
+  cow_tag: string;
+  date: string;               // "YYYY-MM-DD"
+  shift: 'morning' | 'evening';
+  fed_at: string;             // ISO datetime string
+  created_at: string;
+};
+
+export const apiWorkerGetFeedStatus = (
+  token: string,
+  date: string,
+  shift: 'morning' | 'evening'
+) =>
+  request<FeedEntry[]>(
+    `/worker/feed?date=${date}&shift=${shift}`,
+    'GET',
     undefined,
-    t,
+    token
   );
-export const apiAddMedical = (t: string, d: any) =>
-  request<any>("/dairy/medical", "POST", d, t);
-export const apiUpdateMedical = (t: string, id: string, d: any) =>
-  request<any>(`/dairy/medical/${id}`, "PUT", d, t);
-export const apiDeleteMedical = (t: string, id: string) =>
-  request<any>(`/dairy/medical/${id}`, "DELETE", undefined, t);
 
-// ════════════════════════════════════════════════════════════════════════════
-// CLASS-STYLE API
-// ════════════════════════════════════════════════════════════════════════════
-class ApiService {
-  getMilkYield(token: string, search?: string) {
-    const q = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request<any[]>(`/dairy/milk-yield${q}`, "GET", undefined, token);
+  export const apiWorkerMarkFed = (
+  token: string,
+  data: {
+    cow_id: string;
+    cow_name: string;
+    cow_tag: string;
+    date: string;
+    shift: 'morning' | 'evening';
   }
-  createMilkYield(token: string, data: { cowSrNo: string; cowName?: string; date: string; morningYield?: number; eveningYield?: number; totalYield?: number; fatPercentage?: number; snfPercentage?: number; notes?: string }) {
-    return request<any>("/dairy/milk-yield", "POST", data, token);
-  }
-  updateMilkYield(token: string, id: string, data: object) {
-    return request<any>(`/dairy/milk-yield/${id}`, "PUT", data, token);
-  }
-  deleteMilkYield(token: string, id: string) {
-    return request<any>(`/dairy/milk-yield/${id}`, "DELETE", undefined, token);
-  }
+) => request<FeedEntry>('/worker/feed', 'POST', data, token);
 
-  getInsemination(token: string, search?: string) {
-    const q = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request<any[]>(`/dairy/insemination${q}`, "GET", undefined, token);
-  }
-  createInsemination(token: string, data: { cowSrNo: string; cowName?: string; inseminationDate: string; pregnancyStatus?: boolean; pdDone?: boolean; pregnancyStatusDate?: string; doctorName?: string; actualCalvingDate?: string; heatAfterCalvingDate?: string }) {
-    return request<any>("/dairy/insemination", "POST", data, token);
-  }
-  updateInsemination(token: string, id: string, data: object) {
-    return request<any>(`/dairy/insemination/${id}`, "PUT", data, token);
-  }
-  deleteInsemination(token: string, id: string) {
-    return request<any>(`/dairy/insemination/${id}`, "DELETE", undefined, token);
-  }
+export const apiWorkerUnmarkFed = (
+  token: string,
+  cow_id: string,
+  date: string,
+  shift: 'morning' | 'evening'
+) =>
+  request<{ success: boolean }>(
+    `/worker/feed?cow_id=${cow_id}&date=${date}&shift=${shift}`,
+    'DELETE',
+    undefined,
+    token
+  );
 
-  getDOB(token: string, search?: string) {
-    const q = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request<any[]>(`/dairy/dob${q}`, "GET", undefined, token);
-  }
-  createDOB(token: string, data: { cowSrNo: string; cowName?: string; dateOfBirth: string; gender?: string; fatherTag?: string; motherTag?: string; breed?: string; birthWeight?: number; calvingType?: string; notes?: string }) {
-    return request<any>("/dairy/dob", "POST", data, token);
-  }
-  updateDOB(token: string, id: string, data: object) {
-    return request<any>(`/dairy/dob/${id}`, "PUT", data, token);
-  }
-  deleteDOB(token: string, id: string) {
-    return request<any>(`/dairy/dob/${id}`, "DELETE", undefined, token);
-  }
+export type HealthLog = {
+  id: string;
+  worker_id: string;
+  worker_name: string;
+  cow_id: string;
+  cow_name: string;
+  cow_tag: string;
+  status: string;   
+  date: string;     
+  created_at: string;
+};
 
-  getSemen(token: string, search?: string) {
-    const q = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request<any[]>(`/dairy/semen${q}`, "GET", undefined, token);
-  }
-  createSemen(token: string, data: { bullSrNo: string; bullName?: string; breed?: string; femalCalves?: number; maleCalves?: number; damaged?: number; conceptionCount?: number; totalDoses?: number; notes?: string }) {
-    return request<any>("/dairy/semen", "POST", data, token);
-  }
-  updateSemen(token: string, id: string, data: object) {
-    return request<any>(`/dairy/semen/${id}`, "PUT", data, token);
-  }
-  deleteSemen(token: string, id: string) {
-    return request<any>(`/dairy/semen/${id}`, "DELETE", undefined, token);
-  }
+export const apiWorkerGetTodayHealthLogs = (token: string) => {
+  const today = new Date().toISOString().split('T')[0];
+  return request<HealthLog[]>(`/worker/health?date=${today}`, 'GET', undefined, token);
+};
 
-  getGenetic(token: string, search?: string) {
-    const q = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request<any[]>(`/dairy/genetic${q}`, "GET", undefined, token);
+export const apiWorkerAddHealthLog = (
+  token: string,
+  data: {
+    cow_id: string;
+    cow_name: string;
+    cow_tag: string;
+    status: string;
+    date: string;
   }
-  createGenetic(token: string, data: { cowSrNo: string; cowName?: string; breed?: string; bloodline?: string; fatherTag?: string; motherTag?: string; geneticMerit?: string; ebv?: number; dnaTestDone?: boolean; dnaTestDate?: string; notes?: string }) {
-    return request<any>("/dairy/genetic", "POST", data, token);
-  }
-  updateGenetic(token: string, id: string, data: object) {
-    return request<any>(`/dairy/genetic/${id}`, "PUT", data, token);
-  }
-  deleteGenetic(token: string, id: string) {
-    return request<any>(`/dairy/genetic/${id}`, "DELETE", undefined, token);
-  }
-
-  getMedical(token: string, search?: string, status?: "healthy" | "unhealthy") {
-    const params = new URLSearchParams();
-    if (search) params.append("search", search);
-    if (status) params.append("status", status);
-    const q = params.toString() ? `?${params.toString()}` : "";
-    return request<any[]>(`/dairy/medical${q}`, "GET", undefined, token);
-  }
-  createMedical(token: string, data: { cowSrNo: string; cowName?: string; cowAge?: string; currentStatus?: string; lastVaccinationDate?: string; nextVaccinationDate?: string; vaccinationName?: string; lastIssueName?: string; lastIssueDate?: string; currentIssueName?: string; currentIssueDate?: string; treatmentGiven?: string; doctorName?: string; medicineName?: string; notes?: string }) {
-    return request<any>("/dairy/medical", "POST", data, token);
-  }
-  updateMedical(token: string, id: string, data: object) {
-    return request<any>(`/dairy/medical/${id}`, "PUT", data, token);
-  }
-  deleteMedical(token: string, id: string) {
-    return request<any>(`/dairy/medical/${id}`, "DELETE", undefined, token);
-  }
-}
+) => request<HealthLog>('/worker/health', 'POST', data, token);
 
 export const api = new ApiService();
