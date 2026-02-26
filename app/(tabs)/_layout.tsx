@@ -1,144 +1,85 @@
+// _layout.tsx — GauSevak Tab Navigation Layout
+// No expo-linear-gradient — pure React Native only
+
 import { Tabs } from "expo-router";
-import { View, Text, Image, Animated } from "react-native";
+import { View, Text, Image, Animated, StyleSheet, Platform } from "react-native";
 import { useRef, useEffect } from "react";
 import { theme } from "../../constants/theme";
-import { FontAwesome5, MaterialIcons, Entypo, Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 
-// Animated Icon Component
-type AnimatedIconProps = {
-  Icon: any;
-  name: string;
-  focused: boolean;
-  size?: number;
-  color?: string;
-};
+type AnimatedIconProps = { Icon: any; name: string; focused: boolean; size?: number; color?: string; };
 
-const AnimatedIcon = ({ Icon, name, focused, size = 20, color = "#000" }: AnimatedIconProps) => {
+const AnimatedIcon = ({ Icon, name, focused, size = 22, color = "#888" }: AnimatedIconProps) => {
   const scale = useRef(new Animated.Value(1)).current;
+  const glow  = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.spring(scale, {
-      toValue: focused ? 1.3 : 1,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.spring(scale, { toValue: focused ? 1.25 : 1, useNativeDriver: true, tension: 100, friction: 7 }),
+      Animated.timing(glow,  { toValue: focused ? 1 : 0, duration: 200, useNativeDriver: true }),
+    ]).start();
   }, [focused]);
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
+    <Animated.View style={[styles.iconWrap, { transform: [{ scale }], opacity: glow.interpolate({ inputRange: [0,1], outputRange: [0.55,1] }) }]}>
+      {focused && <Animated.View style={[styles.glowDot, { opacity: glow, backgroundColor: color }]} />}
       <Icon name={name} size={size} color={color} />
     </Animated.View>
   );
 };
 
-// Tabs Layout
+function GauSevakHeader() {
+  return (
+    <View style={styles.headerTitle}>
+      <View style={styles.logoWrap}>
+        <Image source={require("../../assets/cow-desi-260nw-2641028419-removebg-preview.png")} style={styles.logo} />
+      </View>
+      <View>
+        <Text style={styles.appName}>GauSevak</Text>
+        <Text style={styles.appTagline}>Dairy Management</Text>
+      </View>
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: { backgroundColor: theme.card },
-        headerTintColor: theme.accent,
-        headerTitleStyle: { fontWeight: "800", color: theme.white },
-        tabBarStyle: {
-          backgroundColor: theme.card,
-          borderTopColor: theme.border,
-          borderTopWidth: 1,
-        },
-        tabBarActiveTintColor: theme.accent,
-        tabBarInactiveTintColor: theme.textMuted,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
-      }}
-    >
+    <Tabs screenOptions={{
+      headerStyle: { backgroundColor: '#141428', elevation: 0, shadowOpacity: 0, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' } as any,
+      headerTintColor: theme.accent,
+      headerTitleStyle: { fontWeight: "800", color: theme.white },
+      tabBarStyle: {
+        backgroundColor: '#141428', borderTopColor: 'rgba(255,255,255,0.07)', borderTopWidth: 1,
+        height: Platform.OS === 'ios' ? 88 : 64,
+        paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+        paddingTop: 8, elevation: 0,
+      },
+      tabBarActiveTintColor: theme.accent,
+      tabBarInactiveTintColor: '#444',
+      tabBarLabelStyle: { fontSize: 10, fontWeight: "700", marginTop: 2 },
+    }}>
       <Tabs.Screen
         name="index"
         options={{
-          headerTitle: () => (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image
-                source={require("../../assets/cow-desi-260nw-2641028419-removebg-preview.png")}
-                style={{
-                  width: 28,
-                  height: 28,
-                  marginRight: 8,
-                  resizeMode: "contain",
-                }}
-              />
-              <Text style={{ fontSize: 18, fontWeight: "800", color: theme.white }}>
-                GauSevak
-              </Text>
-            </View>
-          ),
-          tabBarLabel: "Home",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={Entypo} name="home" focused={focused} color={color} />
-          ),
+          headerTitle: () => <GauSevakHeader />,
+          tabBarLabel: "Dashboard",
+          tabBarIcon: ({ focused, color }) => <AnimatedIcon Icon={Entypo} name="home" focused={focused} color={color} />,
         }}
       />
-
-      <Tabs.Screen
-        name="milk-yield"
-        options={{
-          title: "Milk Yield",
-          tabBarLabel: "Milk",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={FontAwesome5} name="glass-whiskey" focused={focused} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="insemination"
-        options={{
-          title: "Insemination",
-          tabBarLabel: "Insem",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={MaterialIcons} name="local-hospital" focused={focused} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="dob"
-        options={{
-          title: "Date of Birth",
-          tabBarLabel: "DOB",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={Ionicons} name="calendar" focused={focused} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="semen-record"
-        options={{
-          title: "Semen Record",
-          tabBarLabel: "Semen",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={FontAwesome5} name="dna" focused={focused} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="genetic-record"
-        options={{
-          title: "Genetic Record",
-          tabBarLabel: "Genetic",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={FontAwesome5} name="microscope" focused={focused} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="medical"
-        options={{
-          title: "Medical Checkup",
-          tabBarLabel: "Medical",
-          tabBarIcon: ({ focused, color }) => (
-            <AnimatedIcon Icon={MaterialIcons} name="medication" focused={focused} color={color} />
-          ),
-        }}
-      />
+      {/* Hidden screens — sirf tab bar se chupaane ke liye, file exist karni chahiye */}
+      <Tabs.Screen name="milk"   options={{ href: null }} />
+      <Tabs.Screen name="feed"   options={{ href: null }} />
+      <Tabs.Screen name="health" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrap:    { alignItems: 'center', justifyContent: 'center', width: 36, height: 30 },
+  glowDot:     { position: 'absolute', top: -4, width: 4, height: 4, borderRadius: 2 },
+  headerTitle: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoWrap:    { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(34,211,160,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(34,211,160,0.25)' },
+  logo:        { width: 24, height: 24, resizeMode: 'contain' },
+  appName:     { fontSize: 17, fontWeight: '900', color: '#fff', letterSpacing: 0.3 },
+  appTagline:  { fontSize: 10, color: '#444', fontWeight: '600', marginTop: 1 },
+});

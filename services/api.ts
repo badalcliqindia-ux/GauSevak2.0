@@ -1,7 +1,9 @@
 // ═══════════════════════════════════════════════════
 // services/api.ts  —  server.py  connected
 // ═══════════════════════════════════════════════════
-export const BASE_URL = "http://192.168.1.24:8000/api";
+//export const BASE_URL = "http://192.168.1.4:8000/api";
+  export const BASE_URL = "http://192.168.1.26:8000/api";
+
 
 export type UserResponse = {
   id: string;
