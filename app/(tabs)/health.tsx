@@ -143,7 +143,6 @@ export default function HealthScreen() {
   const patch = (id: string, p: Partial<ReturnType<typeof get>>) =>
     setCowHealth((prev) => ({ ...prev, [id]: { ...get(id), ...p } }));
 
-  // ── Fetch ────────────────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     try {
       const [cowsData, logs]: [Cow[], HealthLog[]] = await Promise.all([
@@ -171,7 +170,7 @@ export default function HealthScreen() {
           next[c.id] = {
             status: logMap[c.id] ?? null,
             saving: null,
-            expanded: !logMap[c.id], // already saved → collapsed
+            expanded: !logMap[c.id], 
           };
         });
         return next;
@@ -212,7 +211,7 @@ export default function HealthScreen() {
         date: todayStr(),
       });
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      patch(cow.id, { status: optKey, saving: null, expanded: false }); // collapse after save
+      patch(cow.id, { status: optKey, saving: null, expanded: false }); 
     } catch (err: any) {
       Alert.alert("Error", err?.message ?? "Could not save");
       patch(cow.id, { saving: null });
@@ -252,7 +251,7 @@ export default function HealthScreen() {
         />
       }
     >
-      {/* ── Header Banner ── */}
+
       <LinearGradient colors={["#f0fdf4", "#dcfce7"]} style={s.banner}>
         <View style={s.bannerLeft}>
           <View style={s.bannerIconBox}>
@@ -299,7 +298,7 @@ export default function HealthScreen() {
         </View>
       </LinearGradient>
 
-      {/* ── Progress ── */}
+
       <View style={s.progressRow}>
         <Text style={s.progressTxt}>
           {checkedCount} of {cows.length} cows checked
@@ -321,7 +320,6 @@ export default function HealthScreen() {
         />
       </View>
 
-      {/* ── Cow Cards ── */}
       {cows.map((cow) => {
         const d = get(cow.id);
         const selectedOpt = HEALTH_OPTIONS.find((o) => o.key === d.status);
@@ -343,13 +341,11 @@ export default function HealthScreen() {
               },
             ]}
           >
-            {/* ── Always-visible summary row ── */}
             <TouchableOpacity
               style={s.cardTop}
               onPress={() => toggleExpand(cow.id)}
               activeOpacity={0.75}
             >
-              {/* Avatar */}
               <View
                 style={[
                   s.cowAvatar,
@@ -365,7 +361,6 @@ export default function HealthScreen() {
                 />
               </View>
 
-              {/* Name + tag */}
               <View style={{ flex: 1 }}>
                 <Text style={s.cowName}>{cow.name}</Text>
                 <Text style={s.cowTag}>
@@ -374,7 +369,6 @@ export default function HealthScreen() {
                 </Text>
               </View>
 
-              {/* Right: status badge (if saved) or "Select" pill */}
               {selectedOpt ? (
                 <View style={s.badgeChevronRow}>
                   <View
@@ -413,10 +407,8 @@ export default function HealthScreen() {
               )}
             </TouchableOpacity>
 
-            {/* ── Expandable options panel ── */}
             {d.expanded && (
               <View style={s.optPanel}>
-                {/* "Update status" label shown only when status already set */}
                 {d.status && (
                   <View style={s.updateHintRow}>
                     <MaterialCommunityIcons

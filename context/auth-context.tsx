@@ -3,7 +3,6 @@ import { apiLogin, apiRegister, apiWorkerLogin, apiWorkerRegister, apiWorkerUpda
 import { saveToken, getToken, clearAll, saveUser, getSavedUser } from '../services/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// ── Worker storage helpers (separate keys from admin) ─────────────────────────
 const WORKER_TOKEN_KEY = 'worker_token';
 const WORKER_USER_KEY  = 'worker_user';
 
@@ -20,9 +19,7 @@ const clearWorkerData = () =>
     AsyncStorage.removeItem(WORKER_USER_KEY),
   ]);
 
-// ── Context type ──────────────────────────────────────────────────────────────
 type AuthContextType = {
-  // Admin / farm-owner (unchanged)
   user: UserResponse | null;
   token: string | null;
   loading: boolean;
@@ -30,7 +27,6 @@ type AuthContextType = {
   signup: (name: string, email: string, farm: string, password: string, phone?: string) => Promise<void>;
   logout: () => Promise<void>;
 
-  // Worker
   worker: WorkerResponse | null;
   workerToken: string | null;
   workerLoading: boolean;
@@ -54,21 +50,17 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ── Provider ──────────────────────────────────────────────────────────────────
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // admin state
+
   const [user, setUser]       = useState<UserResponse | null>(null);
   const [token, setToken]     = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // worker state
   const [worker, setWorker]               = useState<WorkerResponse | null>(null);
   const [workerToken, setWorkerToken]     = useState<string | null>(null);
   const [workerLoading, setWorkerLoading] = useState(true);
 
-  // ── Restore both sessions on mount ─────────────────────────────────────────
   useEffect(() => {
-    // restore admin
     (async () => {
       try {
         const t = await getToken();
@@ -77,7 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } finally { setLoading(false); }
     })();
 
-    // restore worker
     (async () => {
       try {
         const t = await getWorkerToken();
@@ -87,7 +78,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     })();
   }, []);
 
-  // ── Admin auth (unchanged logic) ────────────────────────────────────────────
   const login = async (email: string, password: string) => {
     const res = await apiLogin(email, password);
     await saveToken(res.access_token);
@@ -110,7 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
-  // ── Worker auth ─────────────────────────────────────────────────────────────
   const workerLogin = async (email: string, password: string) => {
     const res = await apiWorkerLogin(email, password);
     await saveWorkerToken(res.access_token);
@@ -162,14 +151,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// ── Hooks ─────────────────────────────────────────────────────────────────────
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 };
 
-/** Convenience hook for worker-only screens */
 export const useWorkerAuth = () => {
   const { worker, workerToken, workerLoading, workerLogin, workerSignup, workerLogout, workerUpdateProfile } = useAuth();
   return { worker, workerToken, workerLoading, workerLogin, workerSignup, workerLogout, workerUpdateProfile };

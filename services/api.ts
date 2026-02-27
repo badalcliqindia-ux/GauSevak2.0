@@ -1,5 +1,5 @@
-// export const BASE_URL = "http://192.168.1.4:8000/api";
-export const BASE_URL = "http://192.168.100.231:8000/api";
+export const BASE_URL = "http://192.168.1.22:8000/api";
+// export const BASE_URL = "http://192.168.100.231:8000/api";
 
 export type UserResponse = {
   id: string;
@@ -159,9 +159,9 @@ export type FeedEntry = {
   cow_id: string;
   cow_name: string;
   cow_tag: string;
-  date: string;               // "YYYY-MM-DD"
+  date: string;               
   shift: 'morning' | 'evening';
-  fed_at: string;             // ISO datetime string
+  fed_at: string;           
   created_at: string;
 };
 

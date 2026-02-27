@@ -209,11 +209,7 @@ function FullScreenModal({
             <MilkScreen token={token} onTotalChange={onMilkTotal} />
           )}
           {action === "feed" && (
-            <FeedScreen
-              token={token}
-              cows={cows}
-              onFedCountChange={onFedCount}
-            />
+            <FeedScreen onFedCountChange={onFedCount} />
           )}
           {action === "health" && <HealthScreen />}
         </View>
@@ -283,7 +279,6 @@ export default function DashboardScreen() {
     >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* ── Top Bar ── */}
       <Animated.View style={[s.topBar, { opacity: headerAnim }]}>
         <View>
           <Text style={s.greeting}>GauSevak</Text>
@@ -302,13 +297,11 @@ export default function DashboardScreen() {
         </View>
       </Animated.View>
 
-      {/* ── Date ── */}
       <View style={s.dateStrip}>
         <Ionicons name="calendar-outline" size={13} color="#6b7280" />
         <Text style={s.dateText}> {todayDate}</Text>
       </View>
 
-      {/* ── Stats Row ── */}
       <View style={s.statsRow}>
         <View
           style={[
@@ -345,7 +338,6 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      {/* ── Quick Entry ── */}
       <Text style={s.sectionLabel}>Quick Entry</Text>
       <BigActionButton
         actionKey="milk"
@@ -363,7 +355,6 @@ export default function DashboardScreen() {
         onPress={() => setActiveAction("health")}
       />
 
-      {/* ── Cows List ── */}
       <View style={s.cowsHeader}>
         <Text style={s.sectionLabel}>Your Cows</Text>
         <TouchableOpacity onPress={fetchCows}>
@@ -383,7 +374,6 @@ export default function DashboardScreen() {
 
       <View style={{ height: 40 }} />
 
-      {/* ── Modal ── */}
       <FullScreenModal
         action={activeAction}
         token={workerToken ?? ""}

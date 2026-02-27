@@ -105,7 +105,6 @@ export default function MilkScreen({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // per-cow entry state
   const [cowData, setCowData] = useState<
     Record<
       string,
@@ -230,7 +229,6 @@ export default function MilkScreen({
         />
       }
     >
-      {/* ── Shift Banner ── */}
       <LinearGradient
         colors={isMorning ? ["#fffbeb", "#fef3c7"] : ["#eef2ff", "#e0e7ff"]}
         style={[
@@ -262,7 +260,6 @@ export default function MilkScreen({
         </View>
       </LinearGradient>
 
-      {/* ── Both shifts status strip ── */}
       {shiftStatus && (
         <View style={s.statusStrip}>
           <View
@@ -332,7 +329,6 @@ export default function MilkScreen({
         </View>
       )}
 
-      {/* ── Progress bar ── */}
       <View style={s.progressRow}>
         <Text style={s.progressTxt}>
           {doneCount}/{cows.length} cows logged
@@ -354,7 +350,6 @@ export default function MilkScreen({
         />
       </View>
 
-      {/* ── All-done inline note (non-blocking) ── */}
       {doneCount === cows.length && cows.length > 0 && (
         <View
           style={[
@@ -378,7 +373,6 @@ export default function MilkScreen({
         </View>
       )}
 
-      {/* ── Cow Cards ── always visible ── */}
       {cows.map((cow) => {
         const d = get(cow.id);
 
@@ -393,7 +387,7 @@ export default function MilkScreen({
               },
             ]}
           >
-            {/* Cow info row */}
+
             <View style={s.cardTop}>
               <View
                 style={[
@@ -415,7 +409,6 @@ export default function MilkScreen({
                 </Text>
               </View>
 
-              {/* ✅ Tick badge when saved */}
               {d.saved && (
                 <View style={s.savedBadge}>
                   <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
@@ -424,7 +417,6 @@ export default function MilkScreen({
               )}
             </View>
 
-            {/* Saved summary line */}
             {d.saved &&
               (() => {
                 const entry = todayEntries.find(
@@ -440,7 +432,6 @@ export default function MilkScreen({
                 ) : null;
               })()}
 
-            {/* Controls — only when not saved */}
             {!d.saved && (
               <View style={s.controls}>
                 <TouchableOpacity

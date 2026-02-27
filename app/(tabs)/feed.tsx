@@ -159,7 +159,6 @@ export default function FeedScreen({
         />
       }
     >
-      {/* ── Banner ── */}
       <LinearGradient colors={["#1a1a0a", "#12120a"]} style={fd.banner}>
         <View style={fd.bannerTop}>
           <View style={fd.bannerLeft}>
@@ -196,7 +195,6 @@ export default function FeedScreen({
         </Text>
       </LinearGradient>
 
-      {/* ── Stats Row ── */}
       <View style={fd.statsRow}>
         {[
           {
@@ -242,8 +240,7 @@ export default function FeedScreen({
           </LinearGradient>
         ))}
       </View>
-
-      {/* ── Cow Cards ── */}
+      
       {cows.map((cow) => {
         const d = get(cow.id);
         return (

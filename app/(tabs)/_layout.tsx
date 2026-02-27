@@ -1,6 +1,3 @@
-// _layout.tsx — GauSevak Tab Navigation Layout
-// No expo-linear-gradient — pure React Native only
-
 import { Tabs } from "expo-router";
 import { View, Text, Image, Animated, StyleSheet, Platform } from "react-native";
 import { useRef, useEffect } from "react";
@@ -66,7 +63,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused, color }) => <AnimatedIcon Icon={Entypo} name="home" focused={focused} color={color} />,
         }}
       />
-      {/* Hidden screens — sirf tab bar se chupaane ke liye, file exist karni chahiye */}
       <Tabs.Screen name="milk"   options={{ href: null }} />
       <Tabs.Screen name="feed"   options={{ href: null }} />
       <Tabs.Screen name="health" options={{ href: null }} />
